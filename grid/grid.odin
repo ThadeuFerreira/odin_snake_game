@@ -1,6 +1,8 @@
 package grid
 
 import rl "vendor:raylib"
+import "core:math/rand"
+import "core:mem"
 import "../snake"
 import "../food"
 
@@ -12,13 +14,13 @@ Grid :: struct {
     color : rl.Color,
     score : i32,
 
-    snake : snake.Snake,
-    food : food.Food,
+    snake : ^snake.Snake,
+    food : ^food.Food,
 }
 
 GridBuilder :: proc(offset : rl.Vector2, width : int, height : int, cellsize : f32, color : rl.Color, score : i32) -> Grid {
-    snake : snake.Snake = snake.SnakeBuilder(offset, cellsize, snake.SnakeState.MOVING, snake.DIRECTION.right)
-    food : food.Food = food.FoodBuilder(offset, rl.Vector2{10, 10}, rl.RED, cellsize)
+    snake := snake.SnakeBuilder(offset, cellsize, snake.SnakeState.MOVING, snake.DIRECTION.right)
+    food := food.FoodBuilder(offset, rl.Vector2{10, 10}, rl.RED, cellsize, 10)
     result := Grid{
         offset = offset,
         width = width,
@@ -30,7 +32,7 @@ GridBuilder :: proc(offset : rl.Vector2, width : int, height : int, cellsize : f
         food = food,
     }
 
-    for t in result.snake.tail {
+    for t in &result.snake.tail {
         rl.TraceLog(rl.TraceLogLevel.INFO, "Snake tail x: %f y: %f", t.x, t.y)
     }
 
@@ -50,11 +52,41 @@ Draw :: proc(g : ^Grid) {
         }
     }
     snake.Draw(g.snake)
-    food.Draw(&g.food)
+    food.Draw(g.food)
 }
 
+previousSnakeState : snake.SnakeState = snake.SnakeState.MOVING
 // Update the grid
 Update :: proc(g : ^Grid) {
-    snake.Update(&g.snake, &g.food, g.width, g.height)
+    snakeState := snake.Update(g.snake, g.food, g.width, g.height)
+    if previousSnakeState == snake.SnakeState.MOVING && snakeState == snake.SnakeState.EATING {
+        spawn_food(g, g.snake)
+    }
+    previousSnakeState = snakeState
     
+}
+
+spawn_food :: proc(g : ^Grid, s : ^snake.Snake) {
+    mem.free(g.food)
+    for {
+        x_cell := rand.int_max(g.width)
+        y_cell := rand.int_max(g.height)
+
+        newFoodPosition := rl.Vector2{f32(x_cell), f32(y_cell)}
+        valid := true
+        if newFoodPosition.x == s.head.x && newFoodPosition.y == s.head.y {
+            valid = false
+        }
+        for t, _ in s.tail {
+            if t.x == newFoodPosition.x && t.y == newFoodPosition.y {
+                valid = false
+                break
+            }
+        }
+        if valid {
+            f := food.FoodBuilder(g.offset, rl.Vector2{f32(x_cell), f32(y_cell)}, rl.RED, g.cellsize, 10)
+            g.food = f
+            break
+        }
+    }
 }

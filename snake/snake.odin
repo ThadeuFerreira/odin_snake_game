@@ -42,25 +42,32 @@ Snake :: struct{
 
 }
 
-SnakeBuilder :: proc(offset : rl.Vector2, cellSize : f32, state : SnakeState, direction : rl.Vector2) -> Snake{
+SnakeBuilder :: proc(offset : rl.Vector2, cellSize : f32, state : SnakeState, direction : rl.Vector2) -> ^Snake{
     tail := []rl.Vector2{{4,5}, {3,5}}
-    result := Snake{
-        head = {5,5},
-        tail = make([]rl.Vector2, len(tail)),
-        color = SNAKE_COLOR,
-        offset = offset,
-        cellSize = cellSize,
+    snake := new(Snake)
+    // result := Snake{
+    //     head = {5,5},
+    //     tail = make([]rl.Vector2, len(tail)),
+    //     color = SNAKE_COLOR,
+    //     offset = offset,
+    //     cellSize = cellSize,
 
-        state = state,
-        direction = direction,
-    }
-    copy(result.tail, tail)
-    for t in result.tail {
+    //     state = state,
+    //     direction = direction,
+    // }
+    snake.head = {5,5}
+    snake.color = SNAKE_COLOR
+    snake.offset = offset
+    snake.cellSize = cellSize
+    snake.state = state
+    snake.direction = direction
+    mem.copy(&snake.tail, &tail, len(tail) * size_of(rl.Vector2))
+    for t in snake.tail {
         rl.TraceLog(rl.TraceLogLevel.INFO, "Snake tail x: %f y: %f", t.x, t.y)
     }
-    result.speed = 5.0
-    result.bodyLength = 3
-    return result
+    snake.speed = 5
+    snake.bodyLength = 3
+    return snake
 }
 
 snake_timer : f32 = 0.0
@@ -71,15 +78,15 @@ Update :: proc(s : ^Snake, f : ^food.Food, gridWidth : int, gridHeight : int) ->
         s.direction = DIRECTION.up
     } else if rl.IsKeyPressed(rl.KeyboardKey.DOWN) && s.direction != DIRECTION.up {
         s.direction = DIRECTION.down
-    } else if rl.IsKeyPressed(rl.KeyboardKey.LEFT) && s.direction != DIRECTION.right {
-        s.direction = DIRECTION.left
-    } else if rl.IsKeyPressed(rl.KeyboardKey.RIGHT) && s.direction != DIRECTION.left {
+    }else if rl.IsKeyPressed(rl.KeyboardKey.RIGHT) && s.direction != DIRECTION.left {
         s.direction = DIRECTION.right
+    }else if rl.IsKeyPressed(rl.KeyboardKey.LEFT) && s.direction != DIRECTION.right {
+        s.direction = DIRECTION.left
     }
 
     //Move the snake
     snake_timer += rl.GetFrameTime()
-    if snake_timer >= 0.1 {
+    if snake_timer >= 1/s.speed {
         snake_timer = 0.0
         s.state = Move(s, f, gridWidth, gridHeight)
     }
@@ -91,7 +98,7 @@ Move :: proc(s : ^Snake, f: ^food.Food, gridWidth : int, gridHeight : int) -> Sn
         return SnakeState.DEAD
     }
 
-    for t in s.tail {
+    for t in &s.tail {
         rl.TraceLog(rl.TraceLogLevel.INFO, "Snake head x: %f y: %f", s.head.x, s.head.y)
         rl.TraceLog(rl.TraceLogLevel.INFO, "Snake tail x: %f y: %f", t.x, t.y)
         if s.head.x == t.x && s.head.y == t.y {
@@ -119,7 +126,7 @@ Move :: proc(s : ^Snake, f: ^food.Food, gridWidth : int, gridHeight : int) -> Sn
     return snakeState
 }
 
-Draw :: proc(s : Snake){
+Draw :: proc(s : ^Snake){
     rl.DrawRectangle(i32(s.offset.x + s.head.x*f32(s.cellSize)), i32(s.offset.y + s.head.y*f32(s.cellSize)), i32(s.cellSize) -1, i32(s.cellSize) -1, SNAKE_COLOR)
     for t in s.tail {
         // rl.TraceLog(rl.TraceLogLevel.INFO, "Snake tail x: %f y: %f", t.x, t.y)
