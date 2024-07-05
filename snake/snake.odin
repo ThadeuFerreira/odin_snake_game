@@ -61,7 +61,8 @@ SnakeBuilder :: proc(offset : rl.Vector2, cellSize : f32, state : SnakeState, di
     snake.cellSize = cellSize
     snake.state = state
     snake.direction = direction
-    mem.copy(&snake.tail, &tail, len(tail) * size_of(rl.Vector2))
+    snake.tail = make([]rl.Vector2, len(tail))
+    copy(snake.tail, tail)
     for t in snake.tail {
         rl.TraceLog(rl.TraceLogLevel.INFO, "Snake tail x: %f y: %f", t.x, t.y)
     }
@@ -94,14 +95,15 @@ Update :: proc(s : ^Snake, f : ^food.Food, gridWidth : int, gridHeight : int) ->
     return s.state
 }
 Move :: proc(s : ^Snake, f: ^food.Food, gridWidth : int, gridHeight : int) -> SnakeState{
-    if s.head.x < 0 || s.head.y < 0 || s.head.x >= f32(gridWidth) || s.head.y >= f32(gridHeight) {
+    newHead := s.head + s.direction
+    rl.TraceLog(rl.TraceLogLevel.INFO, "Snake head x: %f y: %f", newHead.x, newHead.y)
+    if newHead.x < 0 || newHead.y < 0 || newHead.x > f32(gridWidth -1) || newHead.y > f32(gridHeight -1) {
         return SnakeState.DEAD
     }
 
     for t in &s.tail {
-        rl.TraceLog(rl.TraceLogLevel.INFO, "Snake head x: %f y: %f", s.head.x, s.head.y)
         rl.TraceLog(rl.TraceLogLevel.INFO, "Snake tail x: %f y: %f", t.x, t.y)
-        if s.head.x == t.x && s.head.y == t.y {
+        if newHead.x == t.x && newHead.y == t.y {
             return SnakeState.DEAD
         }
     }
@@ -115,13 +117,13 @@ Move :: proc(s : ^Snake, f: ^food.Food, gridWidth : int, gridHeight : int) -> Sn
         s.tail = new_data
         snakeState = SnakeState.EATING
     }
-    newHead := s.head + s.direction
-    new_date := make([]rl.Vector2, len(s.tail) + 1)
-    new_date[0] = s.head
+    
+    new_data := make([]rl.Vector2, len(s.tail) + 1)
+    new_data[0] = s.head
     s.head = newHead
-    mem.copy(&new_date[1], &s.tail[0], len(s.tail) * size_of(rl.Vector2))
+    mem.copy(&new_data[1], &s.tail[0], len(s.tail) * size_of(rl.Vector2))
 
-    s.tail = new_date[:s.bodyLength -1] 
+    s.tail = new_data[:s.bodyLength -1] 
 
     return snakeState
 }
