@@ -13,6 +13,7 @@ Grid :: struct {
     cellsize : f32,
     color : rl.Color,
     score : i32,
+    hiscore : i32,
 
     snake : ^snake.Snake,
     food : ^food.Food,
@@ -53,6 +54,8 @@ Draw :: proc(g : ^Grid) {
     }
     snake.Draw(g.snake)
     food.Draw(g.food)
+    rl.DrawText(rl.TextFormat("Score: %08i", g.score), 0, 0, 20, rl.RED);
+    rl.DrawText(rl.TextFormat("HiScore: %08i", g.hiscore), 0, 30, 20, rl.GREEN);
 }
 
 previousSnakeState : snake.SnakeState = snake.SnakeState.MOVING
@@ -68,10 +71,13 @@ Update :: proc(g : ^Grid) {
         g.food = food.FoodBuilder(g.offset, rl.Vector2{10, 10}, rl.RED, g.cellsize, 10)
     }
     if previousSnakeState == snake.SnakeState.MOVING && snakeState == snake.SnakeState.EATING {
+        g.score += g.food.points
+        if g.score > g.hiscore {
+            g.hiscore = g.score
+        }
         spawn_food(g, g.snake)
     }
     previousSnakeState = snakeState
-    
 }
 
 spawn_food :: proc(g : ^Grid, s : ^snake.Snake) {

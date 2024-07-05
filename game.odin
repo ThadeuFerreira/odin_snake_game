@@ -17,7 +17,7 @@ main :: proc()
 {
     // Initialization
     //--------------------------------------------------------------------------------------
-   gridOffset := rl.Vector2{100,0}
+   gridOffset := rl.Vector2{200,0}
 
    gridInstance := grid.GridBuilder(
     gridOffset,
