@@ -10,7 +10,7 @@ screenHeight :: 1000
 BACKGROUND_COLOR : rl.Color = { 173, 204, 96, 255 }
 
 CELL_SIZE :: 30
-CELL_COUNT_X :: 25
+CELL_COUNT_X :: 20
 CELL_COUNT_Y :: 30
 
 main :: proc()

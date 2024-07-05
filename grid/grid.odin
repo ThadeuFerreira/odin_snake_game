@@ -59,6 +59,14 @@ previousSnakeState : snake.SnakeState = snake.SnakeState.MOVING
 // Update the grid
 Update :: proc(g : ^Grid) {
     snakeState := snake.Update(g.snake, g.food, g.width, g.height)
+    if snakeState == snake.SnakeState.DEAD {
+        // Reset the snake
+        mem.free(g.snake)
+        mem.free(g.food)
+        g.score = 0
+        g.snake = snake.SnakeBuilder(g.offset, g.cellsize, snake.SnakeState.MOVING, snake.DIRECTION.right)
+        g.food = food.FoodBuilder(g.offset, rl.Vector2{10, 10}, rl.RED, g.cellsize, 10)
+    }
     if previousSnakeState == snake.SnakeState.MOVING && snakeState == snake.SnakeState.EATING {
         spawn_food(g, g.snake)
     }

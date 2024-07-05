@@ -47,16 +47,7 @@ Snake :: struct{
 SnakeBuilder :: proc(offset : rl.Vector2, cellSize : f32, state : SnakeState, direction : rl.Vector2) -> ^Snake{
     tail := []rl.Vector2{{4,5}, {3,5}}
     snake := new(Snake)
-    // result := Snake{
-    //     head = {5,5},
-    //     tail = make([]rl.Vector2, len(tail)),
-    //     color = SNAKE_COLOR,
-    //     offset = offset,
-    //     cellSize = cellSize,
 
-    //     state = state,
-    //     direction = direction,
-    // }
     snake.head = {5,5}
     snake.color = SNAKE_COLOR
     snake.offset = offset
@@ -72,7 +63,7 @@ SnakeBuilder :: proc(offset : rl.Vector2, cellSize : f32, state : SnakeState, di
     for i in 0..<snake.tail.len {
         rl.TraceLog(rl.TraceLogLevel.INFO, "Snake tail x: %f y: %f", snake.tail.data[i].x, snake.tail.data[i].y)
     }
-    snake.speed = 5
+    snake.speed = 10
     snake.bodyLength = 3
     return snake
 }
@@ -103,7 +94,7 @@ Update :: proc(s : ^Snake, f : ^food.Food, gridWidth : int, gridHeight : int) ->
 Move :: proc(s : ^Snake, f: ^food.Food, gridWidth : int, gridHeight : int) -> SnakeState{
     
     rl.TraceLog(rl.TraceLogLevel.INFO, "Snake head x: %f y: %f", s.head.x, s.head.y)
-    if s.head.x < 0 || s.head.y < 0 || s.head.x >= f32(gridWidth) || s.head.y >= f32(gridHeight) {
+    if s.head.x < 0 || s.head.y < 0 || int(s.head.x) >= gridWidth || int(s.head.y) >= gridHeight {
         return SnakeState.DEAD
     }
 
