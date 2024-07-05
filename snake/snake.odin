@@ -4,6 +4,8 @@ import rl "vendor:raylib"
 import "core:mem"
 import "../food"
 import "../utils"
+import "core:container/queue"
+import "core:container/intrusive/list"
 
 SNAKE_COLOR : rl.Color = { 43, 51, 24, 255 };
 
@@ -28,7 +30,7 @@ DIRECTION: Direction = {
 Snake :: struct{
     color : rl.Color,
     head : rl.Vector2,
-    tail : []rl.Vector2,
+    tail : queue.Queue(rl.Vector2),
 
     offset : rl.Vector2,
     cellSize : f32,
@@ -38,7 +40,7 @@ Snake :: struct{
     direction : rl.Vector2,
     speed : f32,
 
-    bodyLength : int,
+    bodyLength : uint,
 
 }
 
@@ -61,10 +63,14 @@ SnakeBuilder :: proc(offset : rl.Vector2, cellSize : f32, state : SnakeState, di
     snake.cellSize = cellSize
     snake.state = state
     snake.direction = direction
-    snake.tail = make([]rl.Vector2, len(tail))
-    copy(snake.tail, tail)
-    for t in snake.tail {
-        rl.TraceLog(rl.TraceLogLevel.INFO, "Snake tail x: %f y: %f", t.x, t.y)
+    queue.init(&snake.tail)
+    rl.TraceLog(rl.TraceLogLevel.INFO, "Snake tail len: %d, cap: %d", snake.tail.len, &snake.tail.offset)
+    for t in tail {
+        queue.push_back(&snake.tail, t)
+    }
+    rl.TraceLog(rl.TraceLogLevel.INFO, "Snake tail len: %d, cap: %d", snake.tail.len, &snake.tail.offset)
+    for i in 0..<snake.tail.len {
+        rl.TraceLog(rl.TraceLogLevel.INFO, "Snake tail x: %f y: %f", snake.tail.data[i].x, snake.tail.data[i].y)
     }
     snake.speed = 5
     snake.bodyLength = 3
@@ -95,45 +101,43 @@ Update :: proc(s : ^Snake, f : ^food.Food, gridWidth : int, gridHeight : int) ->
     return s.state
 }
 Move :: proc(s : ^Snake, f: ^food.Food, gridWidth : int, gridHeight : int) -> SnakeState{
-    newHead := s.head + s.direction
-    rl.TraceLog(rl.TraceLogLevel.INFO, "Snake head x: %f y: %f", newHead.x, newHead.y)
-    if newHead.x < 0 || newHead.y < 0 || newHead.x > f32(gridWidth -1) || newHead.y > f32(gridHeight -1) {
+    
+    rl.TraceLog(rl.TraceLogLevel.INFO, "Snake head x: %f y: %f", s.head.x, s.head.y)
+    if s.head.x < 0 || s.head.y < 0 || s.head.x >= f32(gridWidth) || s.head.y >= f32(gridHeight) {
         return SnakeState.DEAD
     }
 
-    for t in &s.tail {
-        rl.TraceLog(rl.TraceLogLevel.INFO, "Snake tail x: %f y: %f", t.x, t.y)
-        if newHead.x == t.x && newHead.y == t.y {
+    for i in 0..< s.tail.len{
+        rl.TraceLog(rl.TraceLogLevel.INFO, "Snake tail x: %f y: %f", queue.get(&s.tail,i).x, queue.get(&s.tail,i).y)
+        if s.head.x == queue.get(&s.tail,i).x && s.head.y == queue.get(&s.tail,i).y {
             return SnakeState.DEAD
         }
     }
-
+    
     snakeState := SnakeState.MOVING
     if s.head.x == f.position.x && s.head.y == f.position.y {
         s.bodyLength += 1
-        new_data := make([]rl.Vector2, len(s.tail) + 1)
-        mem.copy(&new_data[1], &s.tail[0], len(s.tail) * size_of(rl.Vector2))
-        new_data[0] = s.head
-        s.tail = new_data
+        queue.push_back(&s.tail, s.head)
         snakeState = SnakeState.EATING
     }
-    
-    new_data := make([]rl.Vector2, len(s.tail) + 1)
-    new_data[0] = s.head
-    s.head = newHead
-    mem.copy(&new_data[1], &s.tail[0], len(s.tail) * size_of(rl.Vector2))
 
-    s.tail = new_data[:s.bodyLength -1] 
+    newHead := s.head + s.direction
+    
+    queue.push_back(&s.tail, s.head)
+    s.head = newHead
+    if s.tail.len > s.bodyLength -1{
+        queue.pop_front(&s.tail)
+    }
 
     return snakeState
 }
 
 Draw :: proc(s : ^Snake){
     rl.DrawRectangle(i32(s.offset.x + s.head.x*f32(s.cellSize)), i32(s.offset.y + s.head.y*f32(s.cellSize)), i32(s.cellSize) -1, i32(s.cellSize) -1, SNAKE_COLOR)
-    for t in s.tail {
+    for i in 0..<s.tail.len {
         // rl.TraceLog(rl.TraceLogLevel.INFO, "Snake tail x: %f y: %f", t.x, t.y)
-        rl.DrawRectangle(i32(s.offset.x + t.x*f32(s.cellSize)), 
-        i32(s.offset.y + t.y*f32(s.cellSize)), 
+        rl.DrawRectangle(i32(s.offset.x + queue.get(&s.tail,i).x*f32(s.cellSize)), 
+        i32(s.offset.y + queue.get(&s.tail,i).y*f32(s.cellSize)), 
         i32(s.cellSize) -1, i32(s.cellSize) -1, 
         SNAKE_COLOR)
     }

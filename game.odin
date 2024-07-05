@@ -10,7 +10,7 @@ screenHeight :: 1000
 BACKGROUND_COLOR : rl.Color = { 173, 204, 96, 255 }
 
 CELL_SIZE :: 30
-CELL_COUNT_X :: 20
+CELL_COUNT_X :: 25
 CELL_COUNT_Y :: 30
 
 main :: proc()
@@ -28,9 +28,9 @@ main :: proc()
     0,
    )
 
-   for t in gridInstance.snake.tail {
-    rl.TraceLog(rl.TraceLogLevel.INFO, "Snake tail x: %f y: %f", t.x, t.y)
-    }
+   for i in 0..< gridInstance.snake.tail.len {
+    rl.TraceLog(rl.TraceLogLevel.INFO, "Snake tail x: %f y: %f", gridInstance.snake.tail.data[i].x, gridInstance.snake.tail.data[i].y)
+}
     
 
     rl.InitWindow(screenWidth, screenHeight, "raylib [core] example - basic window");

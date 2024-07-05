@@ -21,7 +21,7 @@ Grid :: struct {
 GridBuilder :: proc(offset : rl.Vector2, width : int, height : int, cellsize : f32, color : rl.Color, score : i32) -> Grid {
     snake := snake.SnakeBuilder(offset, cellsize, snake.SnakeState.MOVING, snake.DIRECTION.right)
     food := food.FoodBuilder(offset, rl.Vector2{10, 10}, rl.RED, cellsize, 10)
-    result := Grid{
+    grid := Grid{
         offset = offset,
         width = width,
         height = height,
@@ -32,11 +32,11 @@ GridBuilder :: proc(offset : rl.Vector2, width : int, height : int, cellsize : f
         food = food,
     }
 
-    for t in result.snake.tail {
-        rl.TraceLog(rl.TraceLogLevel.INFO, "Snake tail x: %f y: %f", t.x, t.y)
+    for i in 0..< grid.snake.tail.len {
+        rl.TraceLog(rl.TraceLogLevel.INFO, "Snake tail x: %f y: %f", grid.snake.tail.data[i].x, grid.snake.tail.data[i].y)
     }
 
-    return result
+    return grid
 }
 
 
@@ -77,7 +77,7 @@ spawn_food :: proc(g : ^Grid, s : ^snake.Snake) {
         if newFoodPosition.x == s.head.x && newFoodPosition.y == s.head.y {
             valid = false
         }
-        for t, _ in s.tail {
+        for t, _ in s.tail.data {
             if t.x == newFoodPosition.x && t.y == newFoodPosition.y {
                 valid = false
                 break
