@@ -92,27 +92,25 @@ Update :: proc(s : ^Snake, f : ^food.Food, gridWidth : int, gridHeight : int) ->
     return s.state
 }
 Move :: proc(s : ^Snake, f: ^food.Food, gridWidth : int, gridHeight : int) -> SnakeState{
-    
-    rl.TraceLog(rl.TraceLogLevel.INFO, "Snake head x: %f y: %f", s.head.x, s.head.y)
-    if s.head.x < 0 || s.head.y < 0 || int(s.head.x) >= gridWidth || int(s.head.y) >= gridHeight {
+    newHead := s.head + s.direction
+    rl.TraceLog(rl.TraceLogLevel.INFO, "Snake head x: %f y: %f", newHead.x, newHead.y)
+    if newHead.x < 0 || newHead.y < 0 || int(newHead.x) >= gridWidth || int(newHead.y) >= gridHeight {
         return SnakeState.DEAD
     }
 
     for i in 0..< s.tail.len{
         rl.TraceLog(rl.TraceLogLevel.INFO, "Snake tail x: %f y: %f", queue.get(&s.tail,i).x, queue.get(&s.tail,i).y)
-        if s.head.x == queue.get(&s.tail,i).x && s.head.y == queue.get(&s.tail,i).y {
+        if newHead.x == queue.get(&s.tail,i).x && newHead.y == queue.get(&s.tail,i).y {
             return SnakeState.DEAD
         }
     }
     
     snakeState := SnakeState.MOVING
-    if s.head.x == f.position.x && s.head.y == f.position.y {
+    if newHead.x == f.position.x && newHead.y == f.position.y {
         s.bodyLength += 1
-        queue.push_back(&s.tail, s.head)
+        queue.push_back(&s.tail, newHead)
         snakeState = SnakeState.EATING
     }
-
-    newHead := s.head + s.direction
     
     queue.push_back(&s.tail, s.head)
     s.head = newHead
