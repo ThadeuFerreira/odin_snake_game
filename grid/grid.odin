@@ -32,7 +32,7 @@ GridBuilder :: proc(offset : rl.Vector2, width : int, height : int, cellsize : f
         food = food,
     }
 
-    for t in &result.snake.tail {
+    for t in result.snake.tail {
         rl.TraceLog(rl.TraceLogLevel.INFO, "Snake tail x: %f y: %f", t.x, t.y)
     }
 

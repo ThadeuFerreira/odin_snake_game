@@ -27,6 +27,10 @@ main :: proc()
     BACKGROUND_COLOR,
     0,
    )
+
+   for t in gridInstance.snake.tail {
+    rl.TraceLog(rl.TraceLogLevel.INFO, "Snake tail x: %f y: %f", t.x, t.y)
+    }
     
 
     rl.InitWindow(screenWidth, screenHeight, "raylib [core] example - basic window");
