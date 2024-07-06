@@ -42,6 +42,8 @@ Snake :: struct{
 
     bodyLength : uint,
 
+    foodRefence : ^food.Food,
+
 }
 
 SnakeBuilder :: proc(offset : rl.Vector2, cellSize : f32, state : SnakeState, direction : rl.Vector2) -> ^Snake{
@@ -68,9 +70,9 @@ SnakeBuilder :: proc(offset : rl.Vector2, cellSize : f32, state : SnakeState, di
     return snake
 }
 
-snake_timer : f32 = 0.0
+snake_move_timer : f32 = 0.0
 
-Update :: proc(s : ^Snake, f : ^food.Food, gridWidth : int, gridHeight : int) -> SnakeState{
+Update :: proc(s : ^Snake, f : [dynamic]^food.Food, gridWidth : int, gridHeight : int) -> SnakeState{
     //Check for input
     if rl.IsKeyPressed(rl.KeyboardKey.UP) && s.direction != DIRECTION.down {
         s.direction = DIRECTION.up
@@ -83,15 +85,15 @@ Update :: proc(s : ^Snake, f : ^food.Food, gridWidth : int, gridHeight : int) ->
     }
 
     //Move the snake
-    snake_timer += rl.GetFrameTime()
-    if snake_timer >= 1/s.speed {
-        snake_timer = 0.0
+    snake_move_timer += rl.GetFrameTime()
+    if snake_move_timer >= 1/s.speed {
+        snake_move_timer = 0.0
         s.state = Move(s, f, gridWidth, gridHeight)
     }
 
     return s.state
 }
-Move :: proc(s : ^Snake, f: ^food.Food, gridWidth : int, gridHeight : int) -> SnakeState{
+Move :: proc(s : ^Snake, f: [dynamic]^food.Food, gridWidth : int, gridHeight : int) -> SnakeState{
     newHead := s.head + s.direction
     rl.TraceLog(rl.TraceLogLevel.INFO, "Snake head x: %f y: %f", newHead.x, newHead.y)
     if newHead.x < 0 || newHead.y < 0 || int(newHead.x) >= gridWidth || int(newHead.y) >= gridHeight {
@@ -106,10 +108,14 @@ Move :: proc(s : ^Snake, f: ^food.Food, gridWidth : int, gridHeight : int) -> Sn
     }
     
     snakeState := SnakeState.MOVING
-    if newHead.x == f.position.x && newHead.y == f.position.y {
-        s.bodyLength += 1
-        queue.push_back(&s.tail, newHead)
-        snakeState = SnakeState.EATING
+    for ff in f {
+        if newHead.x == ff.position.x && newHead.y == ff.position.y {
+            s.bodyLength += 1
+            queue.push_back(&s.tail, newHead)
+            snakeState = SnakeState.EATING
+            s.foodRefence = ff
+            break
+        }    
     }
     
     queue.push_back(&s.tail, s.head)

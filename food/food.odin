@@ -4,14 +4,15 @@ import rl "vendor:raylib"
 
 FoodType :: enum {
     NORMAL,
-    SPECIAL,
+    ULTRA_SPEED,
+    BONUS_POINTS,
 }
 Food :: struct {
     offset : rl.Vector2,
     position : rl.Vector2,
     color : rl.Color,
     cellSize : f32,
-
+    foodType : FoodType,
     points : i32,
 }
 
@@ -21,19 +22,13 @@ Draw :: proc(f : ^Food) {
 }
 
 // Generate a new food
-FoodBuilder :: proc(offset : rl.Vector2, position : rl.Vector2, color : rl.Color, cellSize : f32, points : i32) -> ^Food {
+FoodBuilder :: proc(offset : rl.Vector2, position : rl.Vector2, color : rl.Color, cellSize : f32, points : i32, foodType: FoodType) -> ^Food {
     food := new(Food)
-    // result := &Food{
-    //     offset = offset,
-    //     position = position,
-    //     color = color,
-    //     cellSize = cellSize,
-    //     points = points,
-    // }
     food.offset = offset
     food.position = position
     food.color = color
     food.cellSize = cellSize
     food.points = points
+    food.foodType = foodType
     return food
 }
