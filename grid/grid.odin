@@ -50,7 +50,7 @@ GridBuilder :: proc(offset : rl.Vector2, width : int, height : int, cellsize : f
     return grid
 }
 
-
+elapsedTime : f32 = 0.0
 // Draw the grid
 Draw :: proc(g : ^Grid) {
     for i in 0..<g.width {
@@ -68,7 +68,15 @@ Draw :: proc(g : ^Grid) {
     }
     // food.Draw(g.food)
     rl.DrawText(rl.TextFormat("Score: %08i", g.score), 0, 0, 20, rl.RED);
-    rl.DrawText(rl.TextFormat("HiScore: %08i", g.hiscore), 0, 30, 20, rl.GREEN);
+    rl.DrawText(rl.TextFormat("HiScore: %08i", g.hiscore), 0, 40, 20, rl.GREEN);
+    elapsedTime += rl.GetFrameTime()
+    rl.DrawText(rl.TextFormat("Elapsed Time: %02.02f ms", elapsedTime*1000), 0, 60, 20, rl.BLACK);
+    if g.ultraSpeed {
+        rl.DrawText(rl.TextFormat("Ultra Speed Active"), 0, 80, 20, rl.BLUE);
+    }
+    if g.bonusPoints {
+        rl.DrawText(rl.TextFormat("Bonus Points Active"), 0, 80, 20, rl.GREEN);
+    }
 }
 
 previousSnakeState : snake.SnakeState = snake.SnakeState.MOVING
