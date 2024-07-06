@@ -112,16 +112,14 @@ Update :: proc(g : ^Grid) {
             points : i32 = 20
             spawn_food(g, g.snake, food.FoodType.ULTRA_SPEED, points)
         }
-
-        if g.ultraSpeed {
-            food_ultra_speed_timer += rl.GetFrameTime()
-            if food_ultra_speed_timer >= 10.0 {
-                g.ultraSpeed = false
-                food_ultra_speed_timer = 0.0
-                rl.TraceLog(rl.TraceLogLevel.INFO, "Ultra speed food expired")
-            }
+    }
+    if g.ultraSpeed {
+        food_ultra_speed_timer += rl.GetFrameTime()
+        if food_ultra_speed_timer >= 10.0 {
+            g.ultraSpeed = false
+            food_ultra_speed_timer = 0.0
+            rl.TraceLog(rl.TraceLogLevel.INFO, "Ultra speed food expired")
         }
-        
     }
     previousSnakeState = snakeState
 }
