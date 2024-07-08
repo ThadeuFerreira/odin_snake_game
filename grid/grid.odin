@@ -23,8 +23,15 @@ Grid :: struct {
     ultraSpeed : bool,
 }
 
+previousSnakeState : snake.SnakeState = snake.SnakeState.MOVING
+previousSnakeSpeed : f32 = 0.0
+food_ultra_speed_timer : f32 = 0.0
+food_bonus_points_timer : f32 = 0.0
+
+
 GridBuilder :: proc(offset : rl.Vector2, width : int, height : int, cellsize : f32, color : rl.Color, score : i32) -> Grid {
     snake := snake.SnakeBuilder(offset, cellsize, snake.SnakeState.MOVING, snake.DIRECTION.right)
+    previousSnakeSpeed = snake.speed
     f := food.FoodBuilder(offset, rl.Vector2{10, 10}, rl.RED, cellsize, 10, food.FoodType.NORMAL)
     grid := Grid{
         offset = offset,
@@ -35,6 +42,7 @@ GridBuilder :: proc(offset : rl.Vector2, width : int, height : int, cellsize : f
         score = score,
         snake = snake,
     }
+    elapsedTime = 1.0
 
     grid.food = make([dynamic]^food.Food,0,20)
     append(&grid.food, f)
@@ -79,11 +87,21 @@ Draw :: proc(g : ^Grid) {
     }
 }
 
-previousSnakeState : snake.SnakeState = snake.SnakeState.MOVING
-food_ultra_speed_timer : f32 = 0.0
-food_bonus_points_timer : f32 = 0.0
+
 // Update the grid
 Update :: proc(g : ^Grid) {
+    snakeSpeedModifier : f32 = 1.0
+    pointsModifier : i32 = 1
+    if g.ultraSpeed {
+        snakeSpeedModifier = 2.0
+        pointsModifier = 2
+    }else{
+        snakeSpeedModifier = 1.0
+        pointsModifier = 1
+    }
+
+    g.snake.speed = previousSnakeSpeed * snakeSpeedModifier
+
     snakeState := snake.Update(g.snake, g.food, g.width, g.height)
     if snakeState == snake.SnakeState.DEAD {
         // Reset the snake
@@ -92,11 +110,14 @@ Update :: proc(g : ^Grid) {
         g.food = make([dynamic]^food.Food,0,20)
         g.score = 0
         g.snake = snake.SnakeBuilder(g.offset, g.cellsize, snake.SnakeState.MOVING, snake.DIRECTION.right)
+        g.ultraSpeed = false
+        g.bonusPoints = false
+        previousSnakeSpeed = g.snake.speed
         f := food.FoodBuilder(g.offset, rl.Vector2{10, 10}, rl.RED, g.cellsize, 10, food.FoodType.NORMAL)
         append_elem(&g.food, f)
     }
     if previousSnakeState == snake.SnakeState.MOVING && snakeState == snake.SnakeState.EATING {
-        g.score += g.snake.foodRefence.points
+        g.score += g.snake.foodRefence.points*pointsModifier
         if g.score > g.hiscore {
             g.hiscore = g.score
         }
@@ -119,6 +140,10 @@ Update :: proc(g : ^Grid) {
         if g.score % 50 == 0 {
             points : i32 = 20
             spawn_food(g, g.snake, food.FoodType.ULTRA_SPEED, points)
+        }
+        if g.score % 150 == 0 {
+            points : i32 = 50
+            spawn_food(g, g.snake, food.FoodType.BONUS_POINTS, points)
         }
     }
     if g.ultraSpeed {
