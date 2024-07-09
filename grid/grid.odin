@@ -75,16 +75,24 @@ Draw :: proc(g : ^Grid) {
         food.Draw(f)
     }
     // food.Draw(g.food)
-    rl.DrawText(rl.TextFormat("Score: %08i", g.score), 0, 0, 20, rl.RED);
-    rl.DrawText(rl.TextFormat("HiScore: %08i", g.hiscore), 0, 40, 20, rl.GREEN);
+    rl.DrawText(rl.TextFormat("Score: %08i", g.score), rl.GetScreenWidth()/2 - i32(g.offset.x), rl.GetScreenHeight() - 100, 20, rl.RED);
+    rl.DrawText(rl.TextFormat("HiScore: %08i", g.hiscore), rl.GetScreenWidth()/2 - i32(g.offset.x), rl.GetScreenHeight() - 80, 20, rl.GREEN);
     elapsedTime += rl.GetFrameTime()
-    rl.DrawText(rl.TextFormat("Elapsed Time: %02.02f ms", elapsedTime*1000), 0, 60, 20, rl.BLACK);
+    rl.DrawText(rl.TextFormat("Elapsed Time: %02.02f ms", elapsedTime*1000), rl.GetScreenWidth()/2 - i32(g.offset.x), rl.GetScreenHeight() - 60, 20, rl.BLACK);
     if g.ultraSpeed {
-        rl.DrawText(rl.TextFormat("Ultra Speed Active"), 0, 80, 20, rl.BLUE);
+        rl.DrawText(rl.TextFormat("Ultra Speed Active"),rl.GetScreenWidth()/2 - i32(g.offset.x), rl.GetScreenHeight() - 40, 20, rl.BLUE);
     }
     if g.bonusPoints {
-        rl.DrawText(rl.TextFormat("Bonus Points Active"), 0, 80, 20, rl.GREEN);
+        rl.DrawText(rl.TextFormat("Bonus Points Active"),rl.GetScreenWidth()/2 - i32(g.offset.x), rl.GetScreenHeight() - 20, 20, rl.GREEN);
     }
+    //Draw at the center bottom of the screen
+    rl.DrawRectangle(0,0 , i32(g.cellsize -1), i32(g.cellsize -1), rl.RED)
+    rl.DrawText(rl.TextFormat("Food"), 0 + i32(g.cellsize), 0, 20, rl.RED)
+    rl.DrawRectangle(0, 60, i32(g.cellsize -1),i32(g.cellsize -1), rl.BLUE)
+    rl.DrawText(rl.TextFormat("Ultra Speed"), 0 + i32(g.cellsize), 60, 20, rl.BLUE)
+    rl.DrawRectangle(0, 120, i32(g.cellsize -1),i32(g.cellsize -1), rl.GREEN)
+    rl.DrawText(rl.TextFormat("Bonus Points"), 0 + i32(g.cellsize), 120, 20, rl.GREEN)
+
 }
 
 
