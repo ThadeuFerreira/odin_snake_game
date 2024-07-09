@@ -139,18 +139,30 @@ Update :: proc(g : ^Grid) {
             }
             case food.FoodType.BONUS_POINTS : {
                 rl.TraceLog(rl.TraceLogLevel.INFO, "Bonus points food eaten")
-                g.bonusPoints = true
             }
         }
-        delete(g.food)
-        g.food = make([dynamic]^food.Food,0,20)
-        spawn_food(g, g.snake, food.FoodType.NORMAL, 10)
+        index := -1
+        for i in 0..<len(g.food) {
+            if g.food[i] == g.snake.foodRefence {
+                index = i
+                break
+            }
+        }
+        if g.snake.foodRefence != nil && g.snake.foodRefence.foodType == food.FoodType.NORMAL {
+            g.food = make([dynamic]^food.Food,0,20)
+            spawn_food(g, g.snake, food.FoodType.NORMAL, 10)
+        }
+        else {
+            unordered_remove(&g.food, index)
+        }
+
         if g.score % 50 == 0 {
             points : i32 = 20
             spawn_food(g, g.snake, food.FoodType.ULTRA_SPEED, points)
         }
-        if g.score % 150 == 0 {
-            points : i32 = 50
+        if g.score % 30 == 0 {
+            points : i32 = 100
+            g.bonusPoints = true
             spawn_food(g, g.snake, food.FoodType.BONUS_POINTS, points)
         }
     }
@@ -160,6 +172,24 @@ Update :: proc(g : ^Grid) {
             g.ultraSpeed = false
             food_ultra_speed_timer = 0.0
             rl.TraceLog(rl.TraceLogLevel.INFO, "Ultra speed food expired")
+        }
+    }
+    if g.bonusPoints {
+        food_bonus_points_timer += rl.GetFrameTime()
+        if food_bonus_points_timer >= 10.0 {
+            g.bonusPoints = false
+            food_bonus_points_timer = 0.0
+            rl.TraceLog(rl.TraceLogLevel.INFO, "Bonus points food expired")
+            index := -1
+            for i in 0..<len(g.food) {
+                if g.food[i].foodType == food.FoodType.BONUS_POINTS {
+                    index = i
+                    break
+                }
+            }
+            if index != -1 {
+                unordered_remove(&g.food, index)
+            }
         }
     }
     previousSnakeState = snakeState
